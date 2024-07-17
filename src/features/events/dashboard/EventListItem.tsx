@@ -3,17 +3,19 @@ import EventListAttendee from "./EventListAttendee";
 import { AppEvent } from "../../../app/types/event";
 
 type Props = {
-  event : AppEvent
+  event : AppEvent;
+  selectEvent :(event : AppEvent)=>void;
+  deleteEvent : (eventId : string)=> void;
 };
 
 
-export default function EventListItem({event} : Props) {
+export default function EventListItem({event,selectEvent,deleteEvent} : Props) {
   return (
     <SegmentGroup>
       <Segment>
         <ItemGroup>
           <Item>
-            <Item.Image src={event.hostPhotoURL} size="tiny" circular />
+            <Item.Image src={event.hostPhotoURL || './user.png'} size="tiny" circular />
             <Item.Content>
               <Item.Header>{event.title}</Item.Header>
               <Item.Description>{event.description} </Item.Description>
@@ -34,7 +36,8 @@ export default function EventListItem({event} : Props) {
       </Segment>
       <Segment clearing>
         <span>{event.description}</span>
-        <Button color="teal" floated="right" content='View'/>
+        <Button color="red" floated="right" content='Delete' onClick={()=>deleteEvent(event.id)} />
+        <Button color="teal" floated="right" content='View' onClick={()=>selectEvent(event)} />
       </Segment>
     </SegmentGroup>
   )
