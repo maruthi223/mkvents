@@ -5,88 +5,96 @@ import { createId } from "@paralleldrive/cuid2";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../../app/store/store";
 import { createEvent, updateEvent } from "../eventSlice";
+import {  Controller, FieldValues, useForm } from "react-hook-form";
+import { categoryOptions } from "./categoryOptions";
+import DatePicker from "react-datepicker";
+import 'react-datepicker/dist/react-datepicker.css';
 
 
 export default function EventsForm() {
+  const {register,handleSubmit, control,setValue, formState:{errors,isValid,isSubmitting}} = useForm({
+    mode:"onTouched"
+  });
   let {id} = useParams();
   const event = useAppSelector(state => state.events.events.find(e => e.id=== id));
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
-  const initialValues = event ?? {
-    title:'',
-    category:'',
-    description:'',
-    city:'',
-    venue:'',
-    date:''
-  }
-
-  const [values,setValue] = useState(initialValues)
-  function onSubmit() {
+  function onSubmit(data: FieldValues) {
     id = id ?? createId();
     event ?  
-    dispatch(updateEvent({...event,...values}))
-    : dispatch(createEvent({...values , id,hostedBy:'mkr',hostPhotoURL:'',attendees:[]}));
+    dispatch(updateEvent({...event,...data,date:data.date.toString()}))
+    : dispatch(createEvent({...data , id,hostedBy:'mkr',hostPhotoURL:'',attendees:[],date:data.date.toString()}));
     navigate(`/events/${id}`)
-  }
+  } 
 
-  function handleInputChange(e:ChangeEvent<HTMLInputElement>) {
-    const {name,value} = e.target
-    setValue({...values,[name]:value})
-  }
 
 
   return (
     <Segment clearing>
-      <Header content={event ? 'Update Event' : 'Create event'} />
-        <Form onSubmit={onSubmit} >
-          <Form.Field>
-            <input 
-            type="text" 
+      <Header content= 'Event details' sub color="teal" />
+        <Form onSubmit={handleSubmit(onSubmit)} >
+          <Form.Input  
             placeholder="Event title"
-            value = {values.title}
-            name = 'title'
-            onChange={e=>handleInputChange(e)} 
-            />
-          </Form.Field>
+            defaultValue = {event?.title || ''}
+            {...register('title',{required:(true)})}
+            error={errors.title && "title required" }
+          />
+          <Controller
+              name='category'
+              control={control}
+              rules={{ required: 'Category is required' }}
+              defaultValue={event?.category}
+              render={({ field }) => (
+                  <Form.Select
+                      options={categoryOptions}
+                      placeholder='Category'
+                      clearable
+                      {...field}
+                      onChange={(_, d) => setValue('category', d.value, { shouldValidate: true })}
+                      error={errors.category && errors.category.message}
+                  />
+              )}
+          />
+          <Form.TextArea  
+            placeholder="Event description"
+            defaultValue = {event?.description || ''}
+            {...register('description',{required:(true)})}
+            error={errors.description && "description required" }
+          />
+          <Header content= 'Location details' sub color="teal" />
+          <Form.Input  
+            placeholder="Event city"
+            defaultValue = {event?.city || ''}
+            {...register('city',{required:(true)})}
+            error={errors.city && "city required" }
+          />
+          <Form.Input  
+            placeholder="Event venue"
+            defaultValue = {event?.venue || ''}
+            {...register('venue',{required:(true)})}
+            error={errors.venue && "venue required" }
+          />
           <Form.Field>
-            <input type="text" placeholder="Description"
-            value = {values.description}
-            name = 'description'
-            onChange={e=>handleInputChange(e)}
+            <Controller
+                name='date'
+                control={control}
+                rules={{ required: 'Date is required' }}
+                defaultValue={event && new Date(event.date) || null}
+                render={({ field }) => (
+                    <DatePicker
+                        selected={field.value}
+                        onChange={value => setValue('date', value, { shouldValidate: true })}
+                        showTimeSelect
+                        timeCaption='time'
+                        dateFormat='MMM d, yyyy h:mm aa'
+                        placeholderText='Event date and time'
+                      />
+                )}
             />
           </Form.Field>
-          <Form.Field>
-            <input type="text" placeholder="Catogery"
-            value = {values.category}
-            name = 'category'
-            onChange={e=>handleInputChange(e)}
-            />
-          </Form.Field>
-          <Form.Field>
-            <input type="text" placeholder="City"
-            value = {values.city}
-            name = 'city'
-            onChange={e=>handleInputChange(e)}
-            />
-          </Form.Field>
-          <Form.Field>
-            <input type="text" placeholder="Venue"
-            value = {values.venue}
-            name = 'venue'
-            onChange={e=>handleInputChange(e)}
-            />
-          </Form.Field>
-          <Form.Field>
-            <input type="date" placeholder="Date"
-            value = {values.date}
-            name = 'date'
-            onChange={e=>handleInputChange(e)}
-            />
-          </Form.Field>
-          <Button type="submit" floated="right" positive content='Submit'/>
-          <Button as={Link} to={'/events'} type="button" floated="right" content='Cancel'/> 
+          <Button loading={isSubmitting} disabled={!isValid} type="submit" floated="right" positive content='Submit'/>
+          <Button loading={isSubmitting} as={Link} to={'/events'} type="button" floated="right" content='Cancel'/> 
         </Form>
     </Segment>
   )
