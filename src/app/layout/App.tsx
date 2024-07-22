@@ -1,4 +1,4 @@
-import { Container, Modal } from "semantic-ui-react"
+import { Container } from "semantic-ui-react"
 import NavBar from "./nav/NavBar"
 
 import { Outlet, useLocation } from "react-router-dom"

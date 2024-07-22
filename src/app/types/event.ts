@@ -11,7 +11,7 @@ export type AppEvent = {
     // hostUid: string
     hostedBy: string
     hostPhotoURL: string
-    // isCancelled: boolean
+    isCancelled: boolean
     attendees: Attendee[]
     // attendeeIds: string[]
     // isHost?: boolean
