@@ -1,30 +1,41 @@
-import { createSlice } from "@reduxjs/toolkit"
+import { createSlice, PayloadAction } from "@reduxjs/toolkit"
 import { AppUser } from "../../app/types/user"
+import { User } from "firebase/auth"
 
 type State = {
     authenticated: boolean
     currentUser: AppUser | null
-    // initialised: boolean
+    initialised: boolean
 }
 
 const initialState: State = {
     authenticated: false,
     currentUser: null,
-    // initialised: false
+    initialised: false
 }
 
 export const authSlice = createSlice({
     name : 'auth',
     initialState,
     reducers: {
-        signIn : (state,action)=>{
-            state.authenticated = true,
-            state.currentUser = {
-                email:action.payload.email,
-                photoURL : '/user.png'
+        signIn :{
+            reducer : (state,action:PayloadAction<AppUser>)=>{
+                state.authenticated = true,
+                state.currentUser = action.payload
+            },
+            prepare :(user:User)=> {
+                const mapped:AppUser ={
+                    uid: user.uid,
+                    photoURL: user.photoURL,
+                    email: user.email,
+                    displayName: user.displayName,
+                    providerId : user.providerData[0].providerId
+                }
+                return{payload:mapped}
             }
         },
-        signOut: (state)=>{
+         
+        logOut: (state)=>{
             state.authenticated = false,
             state.currentUser = null
         }
@@ -32,4 +43,4 @@ export const authSlice = createSlice({
     
 });
 
-export const {signIn,signOut} = authSlice.actions ;
+export const {signIn,logOut} = authSlice.actions ;
